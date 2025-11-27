@@ -1,0 +1,227 @@
+<div id="root">
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand">
+        <img src="assets/botnoi.svg" alt="Botnoi" class="brand-logo" />
+        <div class="brand-text">
+          <div class="brand-title">Botnoi Pokédex</div>
+          <div class="brand-sub">My Pokémon cards list</div>
+        </div>
+      </div>
+
+      <button class="btn btn-add" (click)="openSearchModal()">
+        + Add Pokémon
+      </button>
+    </header>
+
+    <!-- เนื้อหาหลัก -->
+    <main class="main-area">
+      <section class="pokedex-panel">
+        <div class="panel-header">
+          <h2>My Pokédex</h2>
+          <span class="count" *ngIf="myPokedex.length > 0">
+            {{ myPokedex.length }} cards
+          </span>
+        </div>
+
+        <div *ngIf="myPokedex.length === 0" class="empty-state">
+          ยังไม่มีโปเกม่อนใน Pokédex เลย<br />
+          กดปุ่ม <b>“Add Pokémon”</b> ด้านบนเพื่อเริ่มเพิ่มได้เลย
+        </div>
+
+        <div class="cards-list" *ngIf="myPokedex.length > 0">
+          <div class="pokemon-card" *ngFor="let card of myPokedex">
+            <div class="card-left">
+              <div
+                class="card-image-wrap"
+                [style.border-color]="getTypeColor(card)"
+              >
+                <img [src]="card.imageUrl" [alt]="card.name" />
+              </div>
+            </div>
+
+            <div class="card-right">
+              <div class="card-header">
+                <div class="card-name">{{ card.name }}</div>
+                <button
+                  class="btn btn-remove"
+                  title="Remove from Pokédex"
+                  (click)="removeFromPokedex(card)"
+                >
+                  –
+                </button>
+              </div>
+
+              <div class="card-type">{{ getTypeString(card) }}</div>
+
+              <div class="stats">
+                <div class="stat-row">
+                  <span class="label">HP</span>
+                  <div class="bar">
+                    <div
+                      class="bar-fill hp"
+                      [style.width.%]="getHpValue(card)"
+                    ></div>
+                  </div>
+                  <span class="value">{{ getHpValue(card) }}</span>
+                </div>
+
+                <div class="stat-row">
+                  <span class="label">STR</span>
+                  <div class="bar">
+                    <div
+                      class="bar-fill str"
+                      [style.width.%]="getStrengthPercent(card)"
+                    ></div>
+                  </div>
+                  <span class="value">{{ getStrengthPercent(card) }}%</span>
+                </div>
+
+                <div class="stat-row">
+                  <span class="label">WEAK</span>
+                  <div class="bar">
+                    <div
+                      class="bar-fill weak"
+                      [style.width.%]="getWeaknessPercent(card)"
+                    ></div>
+                  </div>
+                  <span class="value">{{ getWeaknessPercent(card) }}%</span>
+                </div>
+
+                <div class="stat-row happy-row">
+                  <span class="label">HAPPY</span>
+                  <div class="happiness">
+                    <img
+                      *ngFor="let h of getHappinessArray(card)"
+                      src="assets/cute.png"
+                      alt="happy"
+                      class="happy-icon"
+                    />
+                  </div>
+                  <span class="value">
+                    {{ getHappiness(card) | number : '1.0-1' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal เลือกโปเกม่อน -->
+  <div
+    class="modal-overlay"
+    *ngIf="isModalOpen"
+    (click)="onOverlayClick($event)"
+  >
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Select Pokémon</h3>
+        <button class="btn btn-icon" (click)="closeSearchModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- ฟอร์มค้นหา -->
+        <div class="search-form">
+  <div class="form-group big">
+    <label>Search</label>
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      (keyup.enter)="searchCards()"
+      placeholder="ค้นจากชื่อหรือประเภท เช่น “Deoxys”, “Fire”"
+    />
+  </div>
+
+  <button class="btn btn-primary" (click)="searchCards()">Search</button>
+</div>
+
+        <!-- รายการผลลัพธ์ -->
+        <div class="search-results">
+          <div *ngIf="searchResults.length === 0" class="empty-state small">
+            ไม่พบผลลัพธ์ หรือคุณเลือกโปเกม่อนทั้งหมดเข้ามาแล้ว
+          </div>
+
+          <div class="results-grid">
+  <div
+    class="result-card"
+    *ngFor="let card of searchResults"
+  >
+    <div class="card-left">
+      <div
+        class="card-image-wrap"
+        [style.border-color]="getTypeColor(card)"
+      >
+        <img [src]="card.imageUrl" [alt]="card.name" />
+      </div>
+    </div>
+
+    <div class="card-right">
+      <div class="card-header">
+        <div>
+          <div class="card-name">{{ card.name }}</div>
+          <div class="card-type">{{ getTypeString(card) }}</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-row">
+          <span class="label">HP</span>
+          <div class="bar">
+            <div
+              class="bar-fill hp"
+              [style.width.%]="getHpValue(card)"
+            ></div>
+          </div>
+          <span class="value">{{ getHpValue(card) }}</span>
+        </div>
+
+        <div class="stat-row">
+          <span class="label">STR</span>
+          <div class="bar">
+            <div
+              class="bar-fill str"
+              [style.width.%]="getStrengthPercent(card)"
+            ></div>
+          </div>
+          <span class="value">{{ getStrengthPercent(card) }}%</span>
+        </div>
+
+        <div class="stat-row">
+          <span class="label">WEAK</span>
+          <div class="bar">
+            <div
+              class="bar-fill weak"
+              [style.width.%]="getWeaknessPercent(card)"
+            ></div>
+          </div>
+          <span class="value">{{ getWeaknessPercent(card) }}%</span>
+        </div>
+
+        <div class="stat-row happy-row">
+          <span class="label">HAPPY</span>
+          <div class="happiness">
+            <img
+              *ngFor="let h of getHappinessArray(card)"
+              src="assets/cute.png"
+              alt="happy"
+              class="happy-icon"
+            />
+          </div>
+          <span class="value">
+            {{ getHappiness(card) | number : '1.0-1' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn btn-success" (click)="addToPokedex(card)">
+          Add
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
